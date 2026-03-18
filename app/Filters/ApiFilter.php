@@ -53,6 +53,12 @@ class ApiFilter implements FilterInterface
         // Assign the API key
         $apikey = $request->header('apikey')->getValue();
 
+        // Test API key is not empty
+        if (empty($apikey)) {
+            header('HTTP/1.1 401 Unauthorized', true, 401);
+            exit(json_encode(['error' => 'Empty API key provided.']));
+        }
+
         // Set success flag
         $success = false;
         
@@ -73,6 +79,11 @@ class ApiFilter implements FilterInterface
             }
             // Get the user UUID from the header
             $user_uuid = $request->header('user-uuid')->getValue();
+            // Test user UUID is not empty
+            if (empty($user_uuid)) {
+                header('HTTP/1.1 401 Unauthorized', true, 401);
+                exit(json_encode(['error' => 'Empty user UUID provided.']));
+            }
             // cURL GET request to auth server
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, config('Urls')->auth . 'api/keycheck/' . $user_uuid . '/' . $apikey);
