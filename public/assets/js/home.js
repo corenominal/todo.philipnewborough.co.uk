@@ -236,6 +236,147 @@
     }
 
     // -------------------------------------------------------------------------
+    // Markdown textarea shortcuts
+    // -------------------------------------------------------------------------
+    function toggleInlineMarkup(textarea, marker) {
+        const start    = textarea.selectionStart;
+        const end      = textarea.selectionEnd;
+        const val      = textarea.value;
+        const selected = val.substring(start, end);
+        const len      = marker.length;
+        if (start >= len
+                && val.substring(start - len, start) === marker
+                && val.substring(end, end + len) === marker) {
+            // Markers surround the selection – remove them
+            textarea.value = val.substring(0, start - len) + selected + val.substring(end + len);
+            textarea.selectionStart = start - len;
+            textarea.selectionEnd   = end - len;
+        } else if (selected.length >= len * 2
+                && selected.startsWith(marker)
+                && selected.endsWith(marker)) {
+            // Selection includes the markers – remove them
+            const inner = selected.substring(len, selected.length - len);
+            textarea.value = val.substring(0, start) + inner + val.substring(end);
+            textarea.selectionStart = start;
+            textarea.selectionEnd   = start + inner.length;
+        } else {
+            // Wrap with markers
+            textarea.value = val.substring(0, start) + marker + selected + marker + val.substring(end);
+            if (start === end) {
+                // No selection: place cursor between the markers
+                textarea.selectionStart = textarea.selectionEnd = start + len;
+            } else {
+                textarea.selectionStart = start + len;
+                textarea.selectionEnd   = end + len;
+            }
+        }
+    }
+
+    function applyTextareaShortcuts(e) {
+        const textarea = e.target;
+        const start    = textarea.selectionStart;
+        const end      = textarea.selectionEnd;
+        const val      = textarea.value;
+
+        // ── Bold (Ctrl/⌘+B) ────────────────────────────────────────────────
+        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === 'b' || e.key === 'B')) {
+            e.preventDefault();
+            toggleInlineMarkup(textarea, '**');
+            return;
+        }
+
+        // ── Italic (Ctrl/⌘+I) ──────────────────────────────────────────────
+        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === 'i' || e.key === 'I')) {
+            e.preventDefault();
+            toggleInlineMarkup(textarea, '*');
+            return;
+        }
+
+        // ── Backtick ───────────────────────────────────────────────────────
+        if (e.key === '`' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+            if (start !== end) {
+                // Wrap selection in inline code
+                e.preventDefault();
+                const selected = val.substring(start, end);
+                textarea.value = val.substring(0, start) + '`' + selected + '`' + val.substring(end);
+                textarea.selectionStart = start + 1;
+                textarea.selectionEnd   = end + 1;
+                return;
+            }
+            // Triple backtick → fenced code block
+            const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+            if (val.substring(lineStart, start) === '``') {
+                e.preventDefault();
+                textarea.value = val.substring(0, lineStart) + '```\n\n```' + val.substring(start);
+                const cursor = lineStart + 4; // after "```\n"
+                textarea.selectionStart = textarea.selectionEnd = cursor;
+                return;
+            }
+        }
+
+        // ── Enter: list / blockquote continuation ──────────────────────────
+        if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+            const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+            const line      = val.substring(lineStart, start);
+
+            // Blockquote
+            const bqMatch = line.match(/^(>\s?)/);
+            if (bqMatch) {
+                e.preventDefault();
+                const prefix = bqMatch[1];
+                if (line.substring(prefix.length).trim() === '') {
+                    // Empty blockquote line – exit the structure
+                    textarea.value = val.substring(0, lineStart) + '\n' + val.substring(start);
+                    textarea.selectionStart = textarea.selectionEnd = lineStart + 1;
+                } else {
+                    // Continue blockquote
+                    textarea.value = val.substring(0, start) + '\n' + prefix + val.substring(start);
+                    textarea.selectionStart = textarea.selectionEnd = start + 1 + prefix.length;
+                }
+                return;
+            }
+
+            // Unordered list
+            const ulMatch = line.match(/^(\s*[-*+] )/);
+            if (ulMatch) {
+                e.preventDefault();
+                const prefix = ulMatch[1];
+                if (line.substring(prefix.length).trim() === '') {
+                    // Empty list item – exit the list
+                    textarea.value = val.substring(0, lineStart) + '\n' + val.substring(start);
+                    textarea.selectionStart = textarea.selectionEnd = lineStart + 1;
+                } else {
+                    // Continue list
+                    textarea.value = val.substring(0, start) + '\n' + prefix + val.substring(start);
+                    textarea.selectionStart = textarea.selectionEnd = start + 1 + prefix.length;
+                }
+                return;
+            }
+
+            // Ordered list
+            const olMatch = line.match(/^(\s*)(\d+)([.)]) /);
+            if (olMatch) {
+                e.preventDefault();
+                const indent     = olMatch[1];
+                const num        = parseInt(olMatch[2], 10);
+                const sep        = olMatch[3];
+                const fullPrefix = olMatch[0];
+                if (line.substring(fullPrefix.length).trim() === '') {
+                    // Empty ordered item – exit the list
+                    textarea.value = val.substring(0, lineStart) + '\n' + val.substring(start);
+                    textarea.selectionStart = textarea.selectionEnd = lineStart + 1;
+                } else {
+                    // Continue with incremented number
+                    const newPrefix = indent + (num + 1) + sep + ' ';
+                    textarea.value = val.substring(0, start) + '\n' + newPrefix + val.substring(start);
+                    textarea.selectionStart = textarea.selectionEnd = start + 1 + newPrefix.length;
+                }
+                return;
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // Filter bar
     // -------------------------------------------------------------------------
     function updateFilterBar() {
@@ -550,6 +691,9 @@
             }
         });
 
+        // ── Markdown shortcuts (create textarea) ─────────────────────────────
+        document.getElementById('todo-markdown').addEventListener('keydown', applyTextareaShortcuts);
+
         // ── Tab switching ────────────────────────────────────────────────────
         document.getElementById('todo-tabs').addEventListener('shown.bs.tab', async function (e) {
             const tab = e.target.dataset.tab;
@@ -807,6 +951,10 @@
                 // Don't re-enter if already editing
                 if (!card.querySelector('.todo-edit-area').classList.contains('d-none')) return;
                 enterEditMode(card);
+            });
+
+            pane.addEventListener('keydown', function (e) {
+                if (e.target.classList.contains('edit-textarea')) applyTextareaShortcuts(e);
             });
         });
 
