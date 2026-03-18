@@ -25,7 +25,7 @@
             <div id="filter-bar" class="d-none alert alert-dark border-primary text-primary py-2 d-flex flex-wrap align-items-center gap-2 mb-3">
                 <i class="bi bi-funnel-fill"></i>
                 <span id="filter-bar-text"></span>
-                <button class="btn btn-sm btn-outline-primary ms-auto" id="clear-filters-btn">
+                <button class="btn btn-sm btn-primary ms-auto" id="clear-filters-btn">
                     <i class="bi bi-x-lg me-1"></i>Clear filters
                 </button>
             </div>
@@ -92,6 +92,13 @@
                         <span class="badge bg-danger ms-1" id="tab-deleted-count">…</span>
                     </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-categories-btn" data-bs-toggle="tab"
+                        data-bs-target="#pane-categories" type="button" role="tab"
+                        aria-controls="pane-categories" aria-selected="false" data-tab="categories">
+                        <i class="bi bi-tags me-1"></i><span class="d-none d-md-inline">Categories</span>
+                    </button>
+                </li>
             </ul>
 
             <div class="tab-content border border-top-0 rounded-bottom p-3 mb-5" id="todo-tabs-content">
@@ -106,6 +113,9 @@
                 <div class="tab-pane fade" id="pane-deleted" role="tabpanel" aria-labelledby="tab-deleted-btn">
                     <div id="items-deleted"><div class="text-center py-4"><div class="spinner-border spinner-border-sm text-secondary" role="status"></div></div></div>
                     <div id="pagination-deleted" class="mt-3"></div>
+                </div>
+                <div class="tab-pane fade" id="pane-categories" role="tabpanel" aria-labelledby="tab-categories-btn">
+                    <div id="items-categories"></div>
                 </div>
             </div>
 

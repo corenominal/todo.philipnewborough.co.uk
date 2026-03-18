@@ -113,17 +113,29 @@ class TodoItems extends BaseController
 
         $db   = \Config\Database::connect();
         $rows = $db->table('todo_items')
-            ->distinct()
-            ->select('category')
+            ->select('category, status, COUNT(*) as count')
             ->where('user_uuid', $userUuid)
             ->where('deleted_at IS NULL', null, false)
             ->where("category != ''")
             ->where('category IS NOT NULL', null, false)
+            ->groupBy('category, status')
             ->orderBy('category', 'ASC')
             ->get()
             ->getResultArray();
 
-        $categories = array_values(array_filter(array_column($rows, 'category')));
+        $map = [];
+        foreach ($rows as $row) {
+            $cat = $row['category'];
+            if (! isset($map[$cat])) {
+                $map[$cat] = ['name' => $cat, 'todo' => 0, 'complete' => 0];
+            }
+            if (array_key_exists($row['status'], $map[$cat])) {
+                $map[$cat][$row['status']] = (int) $row['count'];
+            }
+        }
+
+        $categories = array_values($map);
+        usort($categories, fn ($a, $b) => strcmp($a['name'], $b['name']));
 
         return $this->response->setJSON([
             'status'     => 'success',

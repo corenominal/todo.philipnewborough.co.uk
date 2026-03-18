@@ -8,7 +8,7 @@
     const state = {
         currentTab: 'todo',
         pages: { todo: 1, complete: 1, deleted: 1 },
-        dirtyTabs: new Set(['complete', 'deleted']),
+        dirtyTabs: new Set(['complete', 'deleted', 'categories']),
         categoryFilter: '',
         searchQuery: '',
         changeCatUuid: null,
@@ -430,7 +430,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // Load categories
+    // Load categories (datalist)
     // -------------------------------------------------------------------------
     async function loadCategories() {
         try {
@@ -440,11 +440,64 @@
             list.innerHTML = '';
             (data.categories || []).forEach(function (cat) {
                 const opt = document.createElement('option');
-                opt.value = cat;
+                opt.value = cat.name;
                 list.appendChild(opt);
             });
         } catch (e) {
             // Non-fatal
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Load / render categories pane
+    // -------------------------------------------------------------------------
+    async function loadCategoriesPane() {
+        const container = document.getElementById('items-categories');
+        if (!container) return;
+
+        container.innerHTML = spinner();
+        try {
+            const data = await apiRequest('GET', '/api/todo/categories');
+            renderCategoriesPane(container, data.categories || []);
+        } catch (e) {
+            container.innerHTML = '<p class="text-danger py-3"><i class="bi bi-exclamation-triangle me-1"></i>' + escHtml(e.message) + '</p>';
+        }
+    }
+
+    function renderCategoriesPane(container, categories) {
+        if (categories.length === 0) {
+            container.innerHTML = '<p class="text-muted text-center py-4">No categories yet.</p>';
+            return;
+        }
+
+        let html = '<div class="row g-2 pt-1">';
+        categories.forEach(function (cat) {
+            html += '<div class="col-12 col-sm-6 col-md-4 col-lg-3">';
+            html += '<div class="card h-100 clickable-category-card" role="button" tabindex="0"'
+                + ' data-category="' + escAttr(cat.name) + '">';
+            html += '<div class="card-body py-2 px-3">';
+            html += '<div class="fw-semibold mb-1">' + escHtml(cat.name) + '</div>';
+            html += '<div class="d-flex gap-1 flex-wrap">';
+            if (cat.todo > 0) {
+                html += '<span class="badge bg-primary">' + cat.todo + ' todo</span>';
+            }
+            if (cat.complete > 0) {
+                html += '<span class="badge bg-success">' + cat.complete + ' completed</span>';
+            }
+            html += '</div>';
+            html += '</div></div></div>';
+        });
+        html += '</div>';
+
+        container.innerHTML = html;
+    }
+
+    async function refreshCategories() {
+        await loadCategories();
+        if (state.currentTab === 'categories') {
+            await loadCategoriesPane();
+        } else {
+            state.dirtyTabs.add('categories');
         }
     }
 
@@ -678,11 +731,12 @@
                 showToast('Item created.');
                 // If not on todo tab, go there
                 if (state.currentTab !== 'todo') {
+                    state.dirtyTabs.add('categories');
                     document.getElementById('tab-todo-btn').click();
                 } else {
                     state.pages.todo = 1;
                     await refreshCurrentTab();
-                    await loadCategories();
+                    await refreshCategories();
                 }
             } catch (err) {
                 showToast(err.message, 'danger');
@@ -709,8 +763,12 @@
             state.currentTab = tab;
             if (state.dirtyTabs.has(tab)) {
                 state.dirtyTabs.delete(tab);
-                state.pages[tab] = 1;
-                await loadItems(tab, 1);
+                if (tab === 'categories') {
+                    await loadCategoriesPane();
+                } else {
+                    state.pages[tab] = 1;
+                    await loadItems(tab, 1);
+                }
             }
         });
 
@@ -896,6 +954,7 @@
                     try {
                         await apiRequest('POST', '/api/todo/items/' + destroyBtn.dataset.uuid + '/destroy');
                         showToast('Item permanently deleted.', 'warning');
+                        markDirty('categories');
                         await refreshCurrentTab();
                     } catch (err) {
                         showToast(err.message, 'danger');
@@ -931,7 +990,7 @@
                         card.querySelector('.todo-category-badge').textContent = updated.item.category;
                         card.querySelector('.todo-category-badge').dataset.category = updated.item.category;
                         exitEditMode(card);
-                        await loadCategories();
+                        await refreshCategories();
                         await loadCounts();
                     } catch (err) {
                         showToast(err.message, 'danger');
@@ -975,6 +1034,27 @@
             });
         });
 
+        // ── Categories pane ───────────────────────────────────────────────────
+        const catPane = document.getElementById('pane-categories');
+        if (catPane) {
+            catPane.addEventListener('click', function (e) {
+                const card = e.target.closest('.clickable-category-card');
+                if (!card) return;
+                state.categoryFilter = card.dataset.category;
+                state.pages = { todo: 1, complete: 1, deleted: 1 };
+                updateFilterBar();
+                loadCounts();
+                markDirty('todo', 'complete', 'deleted');
+                document.getElementById('tab-todo-btn').click();
+            });
+            catPane.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    const card = e.target.closest('.clickable-category-card');
+                    if (card) { e.preventDefault(); card.click(); }
+                }
+            });
+        }
+
         // ── Change category modal: save ───────────────────────────────────────
         document.getElementById('save-category-modal-btn').addEventListener('click', async function () {
             if (!state.changeCatUuid) return;
@@ -986,7 +1066,7 @@
                 bootstrap.Modal.getInstance(document.getElementById('changeCategoryModal')).hide();
                 showToast('Category updated.');
                 markDirty('todo', 'complete', 'deleted');
-                await Promise.all([loadCounts(), loadItems(state.currentTab, state.pages[state.currentTab]), loadCategories()]);
+                await Promise.all([loadCounts(), loadItems(state.currentTab, state.pages[state.currentTab]), refreshCategories()]);
             } catch (err) {
                 showToast(err.message, 'danger');
             } finally {
