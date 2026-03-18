@@ -387,6 +387,9 @@
         // ── Meta row ──────────────────────────────────────────────────────────
         out += '<div class="d-flex flex-wrap gap-2 align-items-center mt-2 small">';
         out += '<span class="text-muted"><i class="bi bi-calendar3 me-1"></i>' + escHtml(createdDate) + '</span>';
+        if (status === 'complete' && item.completed_at) {
+            out += '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Completed ' + escHtml(formatDate(item.completed_at)) + '</span>';
+        }
         if (isPinned) {
             out += '<span class="text-primary"><i class="bi bi-pin-angle-fill me-1"></i>Pinned</span>';
         }

@@ -20,6 +20,7 @@ class TodoItemModel extends Model
         'html',
         'category',
         'is_pinned',
+        'completed_at',
     ];
 
     protected $useTimestamps = true;

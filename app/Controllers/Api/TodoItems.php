@@ -247,7 +247,10 @@ class TodoItems extends BaseController
 
         $updateData = ['status' => $status];
         if ($status === 'complete') {
-            $updateData['is_pinned'] = 0;
+            $updateData['is_pinned']    = 0;
+            $updateData['completed_at'] = date('Y-m-d H:i:s');
+        } else {
+            $updateData['completed_at'] = null;
         }
         $model->where('uuid', $uuid)->where('user_uuid', $userUuid)->set($updateData)->update();
         $updated = (new TodoItemModel())->where('uuid', $uuid)->first();
