@@ -1,0 +1,79 @@
+/* ============================================================
+   Todo List – custom styles (Bootstrap 5.3.8 dark theme)
+   ============================================================ */
+
+/* Editable todo item content area */
+.todo-content {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 4px 6px;
+    transition: background-color 0.15s ease;
+    /* Ensure rendered HTML prose looks natural */
+    line-height: 1.65;
+}
+
+.todo-content:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Pinned card — subtle gold left border */
+.todo-pinned {
+    border-left: 3px solid var(--bs-primary) !important;
+    background-color: rgba(var(--bs-primary-rgb), 0.05) !important;
+}
+
+/* Category badge — pointer cursor */
+.todo-category-badge {
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+}
+
+.todo-category-badge:hover {
+    opacity: 0.8;
+}
+
+/* Make rendered markdown compact inside cards */
+.todo-content p:last-child,
+.todo-content ul:last-child,
+.todo-content ol:last-child {
+    margin-bottom: 0;
+}
+
+.todo-content ul,
+.todo-content ol {
+    padding-left: 1.25rem;
+}
+
+.todo-content pre {
+    background: rgba(255, 255, 255, 0.07);
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85em;
+    overflow-x: auto;
+}
+
+.todo-content code {
+    font-size: 0.875em;
+}
+
+.todo-content blockquote {
+    border-left: 3px solid var(--bs-secondary);
+    padding-left: 0.75rem;
+    color: var(--bs-secondary-color);
+}
+
+/* Monospace font for create/edit textareas */
+.font-monospace {
+    font-family: var(--bs-font-monospace);
+    font-size: 0.9em;
+}
+
+/* Smooth fade for edit area toggling */
+.todo-edit-area {
+    animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}

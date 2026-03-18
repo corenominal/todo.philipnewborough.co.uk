@@ -19,7 +19,7 @@ class Home extends BaseController
         // Array of CSS files to include
         $data['css'] = ['home'];
         // Set the page title
-        $data['title'] = 'Template Home';
+        $data['title'] = 'TODO List';
         return view('home', $data);
     }
 }

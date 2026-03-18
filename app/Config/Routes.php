@@ -15,6 +15,18 @@ $routes->post('/admin/delete', 'Admin\Home::delete');
 // API routes
 $routes->match(['get', 'options'], '/api/test/ping', 'Api\Test::ping');
 
+// Todo API routes (more-specific segment routes must come before general ones)
+$routes->match(['get', 'options'],  '/api/todo/items',                      'Api\TodoItems::index');
+$routes->match(['get', 'options'],  '/api/todo/counts',                     'Api\TodoItems::counts');
+$routes->match(['get', 'options'],  '/api/todo/categories',                 'Api\TodoItems::categories');
+$routes->match(['post', 'options'], '/api/todo/items',                      'Api\TodoItems::create');
+$routes->match(['post', 'options'], '/api/todo/items/(:segment)/status',    'Api\TodoItems::updateStatus/$1');
+$routes->match(['post', 'options'], '/api/todo/items/(:segment)/pin',       'Api\TodoItems::togglePin/$1');
+$routes->match(['post', 'options'], '/api/todo/items/(:segment)/delete',    'Api\TodoItems::delete/$1');
+$routes->match(['post', 'options'], '/api/todo/items/(:segment)/restore',   'Api\TodoItems::restore/$1');
+$routes->match(['post', 'options'], '/api/todo/items/(:segment)/destroy',   'Api\TodoItems::destroy/$1');
+$routes->match(['post', 'options'], '/api/todo/items/(:segment)',            'Api\TodoItems::update/$1');
+
 // Command line routes
 $routes->cli('cli/test/index/(:segment)', 'CLI\Test::index/$1');
 $routes->cli('cli/test/count', 'CLI\Test::count');
