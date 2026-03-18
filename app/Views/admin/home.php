@@ -117,9 +117,9 @@
 
 <!-- Delete confirmation modal -->
 <div class="modal fade" id="modal-delete-confirm" tabindex="-1" aria-labelledby="modal-delete-confirm-label" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-danger">
-            <div class="modal-header border-danger">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
                 <h5 class="modal-title" id="modal-delete-confirm-label">
                     <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirm Delete
                 </h5>
@@ -129,7 +129,7 @@
                 You are about to soft-delete <strong id="delete-modal-count" class="text-white">0</strong> item(s).
                 They will remain in the database and can be viewed using the <em>Deleted</em> filter.
             </div>
-            <div class="modal-footer border-danger">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="btn-delete-confirm">Delete</button>
             </div>
