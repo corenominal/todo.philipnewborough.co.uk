@@ -245,7 +245,11 @@ class TodoItems extends BaseController
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Item not found.']);
         }
 
-        $model->where('uuid', $uuid)->where('user_uuid', $userUuid)->set(['status' => $status])->update();
+        $updateData = ['status' => $status];
+        if ($status === 'complete') {
+            $updateData['is_pinned'] = 0;
+        }
+        $model->where('uuid', $uuid)->where('user_uuid', $userUuid)->set($updateData)->update();
         $updated = (new TodoItemModel())->where('uuid', $uuid)->first();
 
         return $this->response->setJSON([
