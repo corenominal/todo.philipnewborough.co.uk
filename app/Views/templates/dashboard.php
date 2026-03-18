@@ -147,7 +147,7 @@
                             </li>
                             <?php endif; ?>
                             <li class="nav-item">
-                                <a class="nav-link d-flex align-items-center gap-2 text-white-50 px-3 py-2" target="_blank" href="<?= config('Urls')->github ?>/blob/main/README.md">
+                                <a class="nav-link d-flex align-items-center gap-2 text-white-50 px-3 py-2" target="_blank" href="<?= config('Urls')->github ?>blob/main/README.md">
                                     <i class="bi bi-file-text-fill"></i> README.md
                                 </a>
                             </li>
