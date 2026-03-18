@@ -579,6 +579,15 @@
             if (e.key === 'Enter') { e.preventDefault(); executeSearch(); }
         });
 
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'f' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                const searchInput = document.getElementById('search-input');
+                searchInput.focus();
+                searchInput.select();
+            }
+        });
+
         document.getElementById('clear-search-btn').addEventListener('click', function () {
             document.getElementById('search-input').value = '';
             state.searchQuery = '';
