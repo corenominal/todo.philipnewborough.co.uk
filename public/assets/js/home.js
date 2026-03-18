@@ -694,6 +694,14 @@
         // ── Markdown shortcuts (create textarea) ─────────────────────────────
         document.getElementById('todo-markdown').addEventListener('keydown', applyTextareaShortcuts);
 
+        // ── Save shortcut (create form, any field) ────────────────────────────
+        document.getElementById('create-todo-form').addEventListener('keydown', function (e) {
+            if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === 's' || e.key === 'S')) {
+                e.preventDefault();
+                this.requestSubmit();
+            }
+        });
+
         // ── Tab switching ────────────────────────────────────────────────────
         document.getElementById('todo-tabs').addEventListener('shown.bs.tab', async function (e) {
             const tab = e.target.dataset.tab;
@@ -955,6 +963,15 @@
 
             pane.addEventListener('keydown', function (e) {
                 if (e.target.classList.contains('edit-textarea')) applyTextareaShortcuts(e);
+                // Save shortcut works from any field within an edit area
+                if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === 's' || e.key === 'S')) {
+                    const editArea = e.target.closest('.todo-edit-area');
+                    if (editArea) {
+                        e.preventDefault();
+                        const saveBtn = editArea.querySelector('.save-edit-btn');
+                        if (saveBtn) saveBtn.click();
+                    }
+                }
             });
         });
 
