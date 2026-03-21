@@ -723,6 +723,7 @@
 
             const btn = document.getElementById('create-btn');
             btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Creating…';
             try {
                 await apiRequest('POST', '/api/todo/items', { markdown: markdown, category: category });
                 markdownEl.value = '';
@@ -742,6 +743,7 @@
                 showToast(err.message, 'danger');
             } finally {
                 btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-plus-lg me-1"></i>Create';
             }
         });
 
